@@ -1,0 +1,30 @@
+# ============================================================
+# 3つのオーケストレーションパターンを個別に実行する
+#
+# 使い方:
+#   docker compose run react              # ReActパターンを実行
+#   docker compose run reflection         # Reflectionパターンを実行
+#   docker compose run planner-executor   # Planner-Executorパターンを実行
+# ============================================================
+
+services:
+  react:
+    build:
+      context: .
+      dockerfile: react/Dockerfile
+    env_file:
+      - ../.env
+
+  reflection:
+    build:
+      context: .
+      dockerfile: reflection/Dockerfile
+    env_file:
+      - ../.env
+
+  planner-executor:
+    build:
+      context: .
+      dockerfile: planner_executor/Dockerfile
+    env_file:
+      - ../.env

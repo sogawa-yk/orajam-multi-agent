@@ -1,0 +1,54 @@
+# ============================================================
+# 3つのツールカテゴリを個別に実行する
+#
+# 使い方:
+#   docker compose run --rm local-tools       # ローカルツール
+#   docker compose run --rm api-tools         # APIベースツール (サーバーも自動起動)
+#   docker compose run --rm mcp-tools         # MCPツール
+# ============================================================
+
+services:
+  # -------------------------------------------------------
+  # 1. ローカルツール (外部依存なし)
+  # -------------------------------------------------------
+  local-tools:
+    build:
+      context: .
+      dockerfile: local_tools/Dockerfile
+    env_file:
+      - ../.env
+
+  # -------------------------------------------------------
+  # 2. API ベースツール (APIサーバー + エージェント)
+  # -------------------------------------------------------
+  api-server:
+    build:
+      context: .
+      dockerfile: api_tools/Dockerfile.server
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      retries: 5
+      start_period: 5s
+
+  api-tools:
+    build:
+      context: .
+      dockerfile: api_tools/Dockerfile.agent
+    env_file:
+      - ../.env
+    environment:
+      - API_BASE_URL=http://api-server:8000
+    depends_on:
+      api-server:
+        condition: service_healthy
+
+  # -------------------------------------------------------
+  # 3. MCP ツール (サーバーはサブプロセスとして起動)
+  # -------------------------------------------------------
+  mcp-tools:
+    build:
+      context: .
+      dockerfile: mcp_tools/Dockerfile
+    env_file:
+      - ../.env

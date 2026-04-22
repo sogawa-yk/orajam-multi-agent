@@ -1,0 +1,13 @@
+FROM python:3.11-slim
+
+RUN pip install --no-cache-dir \
+    langchain-openai \
+    langgraph \
+    python-dotenv \
+    requests
+
+WORKDIR /app
+COPY shared.py /app/shared.py
+COPY api_tools/main.py /app/api_tools/main.py
+
+CMD ["python", "api_tools/main.py"]

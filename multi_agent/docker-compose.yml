@@ -1,0 +1,83 @@
+# ============================================================
+# マルチエージェント デモ (A2A プロトコル)
+#
+# スーパーバイザー型:
+#   docker compose up sv-weather-agent sv-spot-agent -d
+#   docker compose run --rm supervisor
+#
+# スウォーム型:
+#   docker compose up sw-weather-agent sw-spot-agent -d
+#   docker compose run --rm swarm
+# ============================================================
+
+services:
+  # -------------------------------------------------------
+  # スーパーバイザー型
+  # -------------------------------------------------------
+  sv-weather-agent:
+    build: { context: ., dockerfile: supervisor/Dockerfile }
+    command: python supervisor/weather_agent.py
+    env_file: ../.env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/')"]
+      interval: 3s
+      retries: 10
+      start_period: 10s
+
+  sv-spot-agent:
+    build: { context: ., dockerfile: supervisor/Dockerfile }
+    command: python supervisor/spot_agent.py
+    env_file: ../.env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5002/')"]
+      interval: 3s
+      retries: 10
+      start_period: 10s
+
+  supervisor:
+    build: { context: ., dockerfile: supervisor/Dockerfile }
+    command: python supervisor/main.py
+    env_file: ../.env
+    environment:
+      - WEATHER_AGENT_URL=http://sv-weather-agent:5001
+      - SPOT_AGENT_URL=http://sv-spot-agent:5002
+    depends_on:
+      sv-weather-agent: { condition: service_healthy }
+      sv-spot-agent: { condition: service_healthy }
+
+  # -------------------------------------------------------
+  # スウォーム型
+  # -------------------------------------------------------
+  sw-weather-agent:
+    build: { context: ., dockerfile: swarm/Dockerfile }
+    command: python swarm/weather_agent.py
+    env_file: ../.env
+    environment:
+      - SPOT_AGENT_URL=http://sw-spot-agent:5002
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/')"]
+      interval: 3s
+      retries: 10
+      start_period: 10s
+
+  sw-spot-agent:
+    build: { context: ., dockerfile: swarm/Dockerfile }
+    command: python swarm/spot_agent.py
+    env_file: ../.env
+    environment:
+      - WEATHER_AGENT_URL=http://sw-weather-agent:5001
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5002/')"]
+      interval: 3s
+      retries: 10
+      start_period: 10s
+
+  swarm:
+    build: { context: ., dockerfile: swarm/Dockerfile }
+    command: python swarm/main.py
+    env_file: ../.env
+    environment:
+      - WEATHER_AGENT_URL=http://sw-weather-agent:5001
+    depends_on:
+      sw-weather-agent: { condition: service_healthy }
+      sw-spot-agent: { condition: service_healthy }
