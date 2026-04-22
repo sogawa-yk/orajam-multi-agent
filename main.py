@@ -10,10 +10,15 @@ api_key = os.getenv("OCI_GENERATIVE_AI_API_KEY")
 if not api_key:
     raise ValueError("OCI_GENERATIVE_AI_API_KEY is not set. Add it to your .env file.")
 
+project = os.getenv("OCI_PROJECT")
+
+if not project:
+    raise ValueError("OCI_PROJECT is not set. Add it to your .env file.")
+
 client = OpenAI(
     base_url="https://inference.generativeai.ap-osaka-1.oci.oraclecloud.com/openai/v1",
     api_key=api_key,
-    project="***REMOVED***"
+    project=project
 )
 
 response = client.responses.create(

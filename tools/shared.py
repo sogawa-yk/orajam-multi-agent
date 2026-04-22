@@ -11,7 +11,6 @@ load_dotenv()
 
 MODEL = "openai.gpt-4.1"
 BASE_URL = "https://inference.generativeai.ap-osaka-1.oci.oraclecloud.com/openai/v1"
-PROJECT = "***REMOVED***"
 
 
 def get_llm(temperature: float = 0.2) -> ChatOpenAI:
@@ -20,12 +19,16 @@ def get_llm(temperature: float = 0.2) -> ChatOpenAI:
     if not api_key:
         raise ValueError("OCI_GENERATIVE_AI_API_KEY is not set. Add it to your .env file.")
 
+    project = os.getenv("OCI_PROJECT")
+    if not project:
+        raise ValueError("OCI_PROJECT is not set. Add it to your .env file.")
+
     return ChatOpenAI(
         base_url=BASE_URL,
         api_key=api_key,
         model=MODEL,
         temperature=temperature,
-        default_headers={"OpenAI-Project": PROJECT},
+        default_headers={"OpenAI-Project": project},
     )
 
 

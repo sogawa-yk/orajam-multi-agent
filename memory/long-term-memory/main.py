@@ -7,7 +7,6 @@ from openai import OpenAI
 
 APP_DIR = Path(__file__).resolve().parent
 OCI_BASE_URL = "https://inference.generativeai.ap-osaka-1.oci.oraclecloud.com/openai/v1"
-OCI_PROJECT = "***REMOVED***"
 
 
 def load_root_env() -> None:
@@ -43,7 +42,7 @@ def get_client() -> OpenAI:
 
     if os.getenv("OCI_GENERATIVE_AI_API_KEY") and not os.getenv("OPENAI_API_KEY"):
         base_url = os.getenv("OCI_BASE_URL", OCI_BASE_URL)
-        project = os.getenv("OCI_PROJECT", OCI_PROJECT)
+        project = os.getenv("OCI_PROJECT")
 
     client_kwargs = {"api_key": api_key}
     if base_url:
